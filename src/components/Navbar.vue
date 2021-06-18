@@ -1,5 +1,5 @@
 <template>
-  <div v-show="token!=null || token!='' || token!=undefined">
+  <div v-show="token != null || token != '' || token != undefined">
     <v-app-bar color="teal accent-3" dark app clipped-left>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       <v-toolbar-title class="text-uppercase">
@@ -22,9 +22,7 @@
           </v-list-item>
         </v-list>
       </v-menu>
-      <v-btn  color="teal accent-8" @click="salir()">
-        Salir
-      </v-btn>
+      <v-btn color="teal accent-8" @click="salir()"> Salir </v-btn>
     </v-app-bar>
     <v-navigation-drawer
       v-model="drawer"
@@ -34,65 +32,31 @@
     >
       <v-divider></v-divider>
       <v-list nav dense>
-        <v-list-item-group v-model="selectedItem" color="primary">
-          <menu-item icon="mdi-home" title="Inicio" to="/" />
-          <v-list-group :value="false" prepend-icon="mdi-cog-outline" no-action>
-            <template v-slot:activator>
-              <v-list-item-title>Almacén</v-list-item-title>
-            </template>
-            <menu-item
-              icon="mdi-account-group"
-              title="Categoría"
-              pos="2"
-              to="/categorias"
-            />
-            <menu-item
-              icon="mdi-account-multiple"
-              title="Artículos"
-              pos="2"
-              to="/articulos"
-            />
-          </v-list-group>
-        </v-list-item-group>
-        <v-list-item-group v-model="selectedItem" color="primary">
-          <v-list-group :value="false" prepend-icon="mdi-cog-outline" no-action>
-            <template v-slot:activator>
-              <v-list-item-title>Compras</v-list-item-title>
-            </template>
-            <menu-item
-              icon="mdi-account-group"
-              title="Ingresos"
-              pos="2"
-              to="/ingresos"
-            />
-            <menu-item
-              icon="mdi-account-multiple"
-              title="Proveedores"
-              pos="2"
-              to="/proveedores"
-            />
-          </v-list-group>
-        </v-list-item-group>
-        <v-list-item-group v-model="selectedItem" color="primary">
-          <v-list-group :value="false" prepend-icon="mdi-cog-outline" no-action>
-            <template v-slot:activator>
-              <v-list-item-title>Ventas</v-list-item-title>
-            </template>
-            <menu-item
-              icon="mdi-account-group"
-              title="Ventas"
-              pos="2"
-              to="/ventas"
-            />
-            <menu-item
-              icon="mdi-account-multiple"
-              title="Clientes"
-              pos="2"
-              to="/clientes"
-            />
-          </v-list-group>
-        </v-list-item-group>
-        <v-list-item-group v-model="selectedItem" color="primary">
+        <template v-if="this.$store.state.rol == 'ADMIN_ROL'">
+          <v-list-item-group v-model="selectedItem" color="primary">
+            <menu-item icon="mdi-home" title="Inicio" to="/" />
+            <v-list-group
+              :value="false"
+              prepend-icon="mdi-cog-outline"
+              no-action
+            >
+              <template v-slot:activator>
+                <v-list-item-title>Almacén</v-list-item-title>
+              </template>
+              <menu-item
+                icon="mdi-account-group"
+                title="Categoría"
+                pos="2"
+                to="/categorias"
+              />
+              <menu-item
+                icon="mdi-account-multiple"
+                title="Artículos"
+                pos="2"
+                to="/articulos"
+              />
+            </v-list-group>
+            <v-list-item-group v-model="selectedItem" color="primary">
           <v-list-group :value="false" prepend-icon="mdi-cog-outline" no-action>
             <template v-slot:activator>
               <v-list-item-title>Accesos</v-list-item-title>
@@ -105,6 +69,63 @@
             />
           </v-list-group>
         </v-list-item-group>
+          </v-list-item-group>
+        </template>
+        <template
+          v-if="
+            this.$store.state.rol == 'ALMACENISTA_ROL' ||
+            this.$store.state.rol == 'ADMIN_ROL'
+          "
+        >
+          <v-list-item-group v-model="selectedItem" color="primary">
+            <v-list-group
+              :value="false"
+              prepend-icon="mdi-cog-outline"
+              no-action
+            >
+              <template v-slot:activator>
+                <v-list-item-title>Compras</v-list-item-title>
+              </template>
+              <menu-item
+                icon="mdi-account-group"
+                title="Ingresos"
+                pos="2"
+                to="/ingresos"
+              />
+              <menu-item
+                icon="mdi-account-multiple"
+                title="Proveedores"
+                pos="2"
+                to="/proveedores"
+              />
+            </v-list-group>
+          </v-list-item-group>
+        </template>
+        <template v-if="this.$store.state.rol == 'VENDEDOR_ROL'">
+          <v-list-item-group v-model="selectedItem" color="primary">
+            <v-list-group
+              :value="false"
+              prepend-icon="mdi-cog-outline"
+              no-action
+            >
+              <template v-slot:activator>
+                <v-list-item-title>Ventas</v-list-item-title>
+              </template>
+              <menu-item
+                icon="mdi-account-group"
+                title="Ventas"
+                pos="2"
+                to="/ventas"
+              />
+              <menu-item
+                icon="mdi-account-multiple"
+                title="Clientes"
+                pos="2"
+                to="/clientes"
+              />
+            </v-list-group>
+          </v-list-item-group>
+        </template>
         <v-list-item-group v-model="selectedItem" color="primary">
           <v-list-group :value="false" prepend-icon="mdi-cog-outline" no-action>
             <template v-slot:activator>
@@ -141,8 +162,8 @@ export default {
   }),
   methods: {
     salir() {
-      this.$store.dispatch("setToken","");
-      console.log(this.$store.state.token)
+      this.$store.dispatch("setToken", "");
+      console.log(this.$store.state.token);
       this.$router.push("/login");
     },
   },

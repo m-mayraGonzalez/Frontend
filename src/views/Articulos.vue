@@ -55,10 +55,11 @@
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="4">
-                        <v-text-field
-                          v-model="editedItem.categoria.nombre"
+                        <v-select
+                          v-model="categoria"
+                          :items="categorias"
                           label="Categoría"
-                        ></v-text-field>
+                        ></v-select>
                       </v-col>
                       <v-col cols="12" sm="6" md="4">
                         <v-text-field
@@ -99,20 +100,62 @@
                 </v-card-actions>
               </v-card>
             </v-dialog>
-            <v-dialog v-model="dialogDelete" max-width="300px">
+            <v-dialog v-model="Modal" max-width="290">
               <v-card>
-                <v-card-title class="headline"
-                  >Are you sure you want to delete this item?</v-card-title
-                >
+                <v-card-title class="headline" v-if="Accion == 1">
+                  Activar Item
+                </v-card-title>
+                <v-card-title class="headline" v-if="Accion == 2">
+                  Desactivar Item
+                </v-card-title>
+                <v-card-text>
+                  Estás a punto de <span v-if="Accion == 1">activar </span>
+                  <span v-if="Accion == 2">desactivar </span> el item
+                  {{ Nombre }}
+                </v-card-text>
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn color="blue darken-1" text @click="closeDelete"
-                    >Cancelar</v-btn
+                  <v-btn
+                    @click="activarDesactivarCerrar()"
+                    color="primary"
+                    flat="flat"
                   >
-                  <v-btn color="blue darken-1" text @click="deleteItemConfirm"
-                    >Guardar</v-btn
+                    Cancelar
+                  </v-btn>
+                  <v-btn
+                    v-if="Accion == 1"
+                    @click="activar()"
+                    color="primary"
+                    flat="flat"
                   >
+                    Activar
+                  </v-btn>
+                  <v-btn
+                    v-if="Accion == 2"
+                    @click="desactivar()"
+                    color="primary"
+                    flat="flat"
+                  >
+                    Desactivar
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+            <v-dialog v-model="ModalEliminar" max-width="290">
+              <v-card>
+                <v-card-title class="headline"> Eliminar Item </v-card-title>
+                <v-card-text>
+                  Estás a punto de eliminar el item <v-spacer></v-spacer>
+                  {{ Nombre }}
+                </v-card-text>
+                <v-card-actions>
                   <v-spacer></v-spacer>
+                  <v-btn @click="DeleteCerrar()" color="primary" flat="flat">
+                    Cancelar
+                  </v-btn>
+                  <v-btn @click="eliminar()" color="primary" flat="flat">
+                    Eliminar
+                  </v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -138,6 +181,14 @@
             </v-icon>
           </template>
         </template>
+        <template v-slot:[`item.estado`]="{ item }">
+          <div v-if="item.estado">
+            <span class="blue--text">Activo</span>
+          </div>
+          <div v-else>
+            <span class="red--text">Inactivo</span>
+          </div>
+        </template>
         <template v-slot:no-data>
           <v-btn color="primary" @click="initialize"> Reset </v-btn>
         </template>
@@ -154,6 +205,9 @@ export default {
   data() {
     return {
       x: 0,
+      select: null,
+      categoria:[],
+      categorias:[],
       articulos: [],
       dialog: false,
       headers: [
@@ -186,8 +240,15 @@ export default {
       return this.x == 0 ? "Nuevo" : "Editar";
     },
   },
+  watch: {
+    dialog(val) {
+      val || this.cerrar();
+    },
+  },
   created() {
     this.listar();
+    this.selectCategorias();
+    
   },
   methods: {
     listar() {
@@ -199,6 +260,48 @@ export default {
         })
         .catch();
     },
+    limpiar() {
+      this.id = "";
+      this.nombre = "";
+      this.descripcion = "";
+      this.valida = 0;
+      this.validaMensaje = [];
+      this.editedIndex = -1;
+    },
+    validar() {
+      this.valida = 0;
+      this.validaMensaje = [];
+      if (this.nombre.length < 1 || this.nombre.length > 50) {
+        this.validaMensaje.push(
+          "El nombre del Artículo debe tener entre 1-50 caracteres."
+        );
+      }
+      if (this.descripcion.length > 255) {
+        this.validaMensaje.push(
+          "La descripción del Artículo no debe tener más de 255 caracteres."
+        );
+      }
+      if (this.validaMensaje.length) {
+        this.valida = 1;
+      }
+      return this.valida;
+    },
+    selectCategorias() {
+      let me = this;
+      let categoriaArray = [];
+      let header = { headers: { "token": this.$store.state.token } };
+      axios
+        .get("categoria", header)
+        .then(function (response) {
+          categoriaArray = response.data.categoria;
+          categoriaArray.map(function (x) {
+            me.categorias.push({ text: x.nombre, value: x._id });
+          });
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
     guardar() {
       if (this.x == 0) {
         console.log("Estoy guardando" + this.x);
@@ -209,7 +312,8 @@ export default {
             "articulos",
             {
               nombre: me.editedItem.nombre,
-              categoria: me.editedItem.categoria,
+              codigo: me.editedItem.codigo,
+              categoria: me.categoria,
               stock: me.editedItem.stock,
               precioVenta: me.editedItem.precioVenta,
               descripcion: me.editedItem.descripcion,
@@ -250,7 +354,6 @@ export default {
           });
       }
     },
-
     editar(item) {
       this.x = 1;
       console.log(item);
@@ -329,6 +432,58 @@ export default {
             console.log(error);
           });
       }
+    },
+    DeleteCerrar() {
+      this.ModalEliminar = 0;
+    },
+    activar() {
+      let me = this;
+      let header = { headers: { token: this.$store.state.token } };
+      axios
+        .put(`articulos/activar/${me.Id}`, {}, header)
+        .then(function () {
+          me.Modal = 0;
+          me.Accion = 0;
+          me.Nombre = "";
+          me.Id = "";
+          me.listar();
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    desactivar() {
+      let me = this;
+      let header = { headers: { token: this.$store.state.token } };
+      axios
+        .put(`articulos/desactivar/${me.Id}`, {}, header)
+        .then(function () {
+          me.Modal = 0;
+          me.Accion = 0;
+          me.Nombre = "";
+          me.Id = "";
+          me.listar();
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    cerrar() {
+      this.dialog = false;
+    },
+    deleteItem(item) {
+      this.ModalEliminar = 1;
+      this.Nombre = item.nombre;
+      this.Id = item._id;
+    },
+    eliminar() {
+      var me = {
+        id: this.id,
+        token: this.$store.state.token,
+      };
+      axios.delete(`articulos/${me._id}`, this.headers).then((datos) => {
+        console.log(datos);
+      });
     },
   },
 };

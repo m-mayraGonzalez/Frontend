@@ -310,6 +310,9 @@ export default {
     arrayEvents: null,
     date2: new Date().toISOString().substr(0, 10),
   }),
+  created() {
+    console.log("Hola este es mi rol " + this.$store.state.rol);
+  },
   computed: {
     theme() {
       return this.$vuetify.theme.dark ? "dark" : "light";

@@ -13,7 +13,12 @@
                     <v-col cols="12" md="8">
                       <v-card-text class="mt-12">
                         <h1
-                          class="text-center display-2 teal--text text--accent-3"
+                          class="
+                            text-center
+                            display-2
+                            teal--text
+                            text--accent-3
+                          "
                         >
                           Acceso al Sistema
                         </h1>
@@ -83,15 +88,15 @@ export default {
           password: me.usuario.password,
         })
         .then(function (response) {
-          console.log(response.data.usuario.rol)
+          console.log(response.data.usuario.rol);
           me.$store.dispatch("setToken", response.data);
-          console.log(me.$store.state.token)
-          me.$store.dispatch('setRol', response.data.usuario.rol)
+          console.log(me.$store.state.token);
+          me.$store.dispatch("setRol", response.data.usuario.rol);
           me.$router.push("/");
         })
         .catch(function ({ response }) {
           console.log(response.data.msg);
-          Swal.fire ({
+          Swal.fire({
             icon: "error",
             title: "G-mail y Password Incorrectos",
             text: "Password Incorrecto",

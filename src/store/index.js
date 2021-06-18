@@ -27,7 +27,7 @@ export default new Vuex.Store({
       context.commit('setUsuario',data.usuario)
     },
     setRol(context,data){
-      context.commit('setRol', data.value);
+      context.commit('setRol', data);
     }
    
    
